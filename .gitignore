@@ -1,0 +1,6 @@
+.*.swp
+detail/
+.DS_Store
+*.html
+ids.txt
+*.pyc
