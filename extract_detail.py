@@ -22,7 +22,7 @@ def process_registration(soup):
             cells = qualification.select("td")
             if len(cells) > 0:
                 q.append({
-                    "degreee" : cells[0].text,
+                    "degree" : cells[0].text,
                     "date" : parser.parse(cells[1].text),
                 })
 
@@ -51,7 +51,6 @@ def process_registration(soup):
     }
 
 for filename in glob("detail/*.html"):
-    if not "985009269" in filename: continue
     html = open(filename).read()
     html = html.replace("<!--", "").replace("-->", "").replace("&nbsp;", "")
     soup = BeautifulSoup(html, "html.parser")
@@ -70,5 +69,6 @@ for filename in glob("detail/*.html"):
         "postcode" : soup.select("#ctl00_ContentPlaceHolder1_lblPOSTAL_CODE")[0].text,
         "registrations" : [process_registration(r) for r in registrations]
     }
-    print json.dumps(record, indent=4, default=json_serial)
+    #print json.dumps(record, indent=4, default=json_serial)
+    print json.dumps(record, default=json_serial)
         
