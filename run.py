@@ -60,8 +60,11 @@ def load_next_page(html):
             "__gvgvResults__hidden" : __gvgvResults__hidden
         }
 
-    soup = BeautifulSoup(html, "html.parser")
-    max_pages = int(soup.select("#lblRecordsFound")[0].text.split(":")[1].strip()) / 10
+    try:
+        soup = BeautifulSoup(html, "html.parser")
+        max_pages = int(soup.select("#lblRecordsFound")[0].text.split(":")[1].strip()) / 10
+    except IndexError:
+        return
 
     s = "%d|0|/wFlQ7FAR9nyruIsPBAV2nNp4IseQpPNhjo44bnUJh0rIQ8=|"
     callbackparam = s + "|" + s
