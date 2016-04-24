@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 import re
 import sys
 import time
+import os
 
 s = requests.Session()
 
@@ -96,6 +97,9 @@ def load_next_page(html):
             import traceback; traceback.print_exc()
 
 def load_position():
+    if not os.path.exists("position.dat"):
+        mark_position(0)
+
     with open("position.dat") as fp:
         try:
             return int(fp.read())
