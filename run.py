@@ -2,23 +2,20 @@ import requests
 import json
 import urllib, urllib2
 import urlparse
-from qs import _cmd
+from qs import _cmd, _baseheaders
 from bs4 import BeautifulSoup
 import re
 import sys
 import time
 
-def setup_tor():
-    import socket
-    import socks
-    socks.set_default_proxy(socks.SOCKS5, "127.0.0.1", 9050, True, 'socks5_user','socks_pass')
-    socket.socket = socks.socksocket
+s = requests.Session()
 
 def grab_html(url, data, headers):
     headers = headers or {}
     while True:
         try:
-            return requests.post(url, data=data, headers=headers, timeout=25)
+            data = s.post(url, data=data, headers=headers, timeout=25)
+            return data
         except (requests.exceptions.Timeout, requests.exceptions.ConnectionError):
             sys.stderr.write("Timeout: %s\n" % url)
             sys.stderr.flush()
@@ -36,8 +33,7 @@ def print_numbers(numbers):
 def load_page1(val):
     qs = _cmd
     qs["txtId_No"] = "%%%%%%" + val + "%%%"
-    headers = {"User-Agent" : "Mozilla/5.0"}
-    r = grab_html(url, qs, headers)
+    r = grab_html(url, qs, _baseheaders)
     html = r.content
     ids = fileno_reg.findall(html)
     print_numbers(ids)
@@ -84,26 +80,40 @@ def load_next_page(html):
     }
 
     for i in range(1, max_pages + 1):
+        try:
+            r = grab_html(url, qs, _baseheaders)
+            html = r.content
+            if "Runtime Error" in html: 
+                print "Runtime Error: ID: " + soup.select("#txtId_No")[0]["value"], "page: " + str(i)
+            ids = fileno_reg.findall(html)
+            print_numbers(ids)
+            if reached_end(html):
+                break
+            values = extract_values(html)
+            values["__CALLBACKPARAM"] = callbackparam % (i + 1, i)
+            qs.update(values)
+        except ValueError:
+            import traceback; traceback.print_exc()
 
-        headers = {"User-Agent" : "Mozilla/5.0"}
-        r = grab_html(url, qs, headers)
-        html = r.content
-        ids = fileno_reg.findall(html)
-        print_numbers(ids)
-        if reached_end(html):
-            break
-        values = extract_values(html)
-        values["__CALLBACKPARAM"] = callbackparam % (i + 1, i)
-        qs.update(values)
+def load_position():
+    with open("position.dat") as fp:
+        try:
+            return int(fp.read())
+        except TypeError:
+            return 0
+
+def mark_position(i):
+    with open("position.dat", "w") as fp:
+        fp.write(str(i))
 
 def cycle():
-    for i in range(26, 10000):
+    for i in range(load_position(), 10000):
+        mark_position(i)
         val = str(i).zfill(4)
         sys.stderr.write("\r%s" % val)
         html = load_page1(val)
         load_next_page(html)
 
-#setup_tor()
 cycle()
 #load_next_page(open("out.html").read())
 
