@@ -4,3 +4,5 @@ detail/
 *.html
 ids.txt
 *.pyc
+# Ignore output of scraper
+data.sqlite
